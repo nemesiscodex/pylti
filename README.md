@@ -1,2 +1,2 @@
-# pylti
+# pylti (WIP)
 LTI python library
