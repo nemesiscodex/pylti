@@ -5,6 +5,31 @@ import time
 from lti_constants import *
 
 
+def get_lti_form(params, url, key, secret):
+    prepare_lti_params(params)
+    prepare_oauth_params(params, key)
+    request = sign_request(params, url, 'POST', key, secret)
+    html = "<form action='%s' name=\"ltiLaunchForm\" method=\"POST\" encType=\"application/x-www-form-urlencoded\">\n" % url
+    for key in request.keys():
+        html += "<input type=\"hidden\" name=\"%s\" value=\"%s\">\n" % (html_special_chars(key),
+                                                                        html_special_chars(request.get_parameter(key)))
+    html += "</form>\n"
+    html += "<script language=\"javascript\">\n"
+    html += "document.ltiLaunchForm.submit();\n"
+    html += "</script>"
+    return html
+
+
+def html_special_chars(value):
+    ret_val = re.sub(r"&", r"&amp;", str(value))
+    ret_val = re.sub(r"\"", r"&quot;", ret_val)
+    ret_val = re.sub(r"<", r"&lt;", ret_val)
+    ret_val = re.sub(r">", r"&gt;", ret_val)
+    ret_val = re.sub(r">", r"&gt;", ret_val)
+    ret_val = re.sub(r"=", r"&#61;", ret_val)
+    return ret_val
+
+
 def sign_request(params, url, method, key, secret):
     # Create our request. Change method, etc. accordingly.
     req = oauth.Request(method=method, url=url, parameters=params, is_form_encoded=True)
@@ -35,8 +60,8 @@ def prepare_lti_params(params):
     if RESOURCE_LINK_ID not in params:
         params[RESOURCE_LINK_ID] = uuid.uuid1().__str__()
 
-#   any non-standard param should be converted to custom_param
-#   also any key character matching [^A-Za-z0-9] will be replaced by _
+    # any non-standard param should be converted to custom_param
+    # also any key character matching [^A-Za-z0-9] will be replaced by _
     for key in params:
         if key not in valid_property_names and \
                 not str(key).startswith(CUSTOM_PREFIX) and \
