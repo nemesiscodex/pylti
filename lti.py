@@ -6,6 +6,14 @@ from lti_constants import *
 
 
 def get_lti_form(params, url, key, secret):
+    """
+    Get basic lti launch auto-submit form
+    :param params: mutable map of raw parameters
+    :param url: non-mutable lti endpoint
+    :param key: non-mutable consumer key
+    :param secret: non-mutable consumer secret
+    :return: html string of the form + auto-submit script
+    """
     prepare_lti_params(params)
     prepare_oauth_params(params, key)
     request = sign_request(params, url, 'POST', key, secret)
@@ -21,6 +29,11 @@ def get_lti_form(params, url, key, secret):
 
 
 def html_special_chars(value):
+    """
+    Scape html special characters
+    :param value: value
+    :return: scaped value
+    """
     ret_val = re.sub(r"&", r"&amp;", str(value))
     ret_val = re.sub(r"\"", r"&quot;", ret_val)
     ret_val = re.sub(r"<", r"&lt;", ret_val)
@@ -31,6 +44,15 @@ def html_special_chars(value):
 
 
 def sign_request(params, url, method, key, secret):
+    """
+    Obtain a signed request using HMAC-SHA1
+    :param params: mutable request parameter map
+    :param url: non-mutable destination url
+    :param method: non-mutable method used (e.g. POST, GET, etc)
+    :param key: non-mutable consumer key
+    :param secret: non-mutable consumer secret
+    :return: signed http request
+    """
     # Create our request. Change method, etc. accordingly.
     req = oauth.Request(method=method, url=url, parameters=params, is_form_encoded=True)
 
@@ -43,6 +65,11 @@ def sign_request(params, url, method, key, secret):
 
 
 def prepare_oauth_params(params, key):
+    """
+    Prepare Oauth parameters
+    :param params: mutable initial request parameter map
+    :param key: non-mutable consumer key
+    """
     params[OAUTH_PREFIX + 'version'] = '1.0'
     params[OAUTH_PREFIX + 'nonce'] = oauth.generate_nonce()
     params[OAUTH_PREFIX + 'timestamp'] = int(time.time())
@@ -51,6 +78,13 @@ def prepare_oauth_params(params, key):
 
 
 def prepare_lti_params(params):
+    """
+    Prepare basic lti launch parameters
+    Adds LTI_VERSION, LTI_MESSAGE_TYPE, RESOURCE_LINK_ID (a random value)
+    Replaces custom parameter names, replacing special characters with _, and adding a CUSTOM_PREFIX
+    :param params: mutable initial parameter map
+    :return:
+    """
     if LTI_VERSION not in params:
         params[LTI_VERSION] = LTI_VERSION_1
 
